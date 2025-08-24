@@ -1,0 +1,228 @@
+<div id="ppt-header">🎨 편집 도구</div>
+<div id="ppt-content">
+    
+    <!-- 기본 도구들 (항상 표시) -->
+    <div class="ppt-section">
+        <h4>빠른 추가</h4>
+        <div class="button-group">
+            <button onclick="addQuickText()">📝 텍스트</button>
+            <button onclick="addQuickImage()">🖼️ 이미지</button>
+        </div>
+        <div class="button-group" style="margin-top: 5px;">
+            <button onclick="addQuickShape('circle')">⭕ 원</button>
+            <button onclick="addQuickShape('rectangle')">⬜ 사각형</button>
+        </div>
+    </div>
+
+    <div class="ppt-section">
+        <h4>배경</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 10px;">
+            <button onclick="changeBackground('#000000')" style="background: #000; color: white; padding: 8px; border: none; border-radius: 4px; cursor: pointer;">⚫</button>
+            <button onclick="changeBackground('#ffffff')" style="background: #fff; color: #000; padding: 8px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">⚪</button>
+            <button onclick="changeBackground('linear-gradient(135deg, #667eea 0%, #764ba2 100%)')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px; border: none; border-radius: 4px; cursor: pointer;">🌅</button>
+            <button onclick="changeBackground('linear-gradient(135deg, #f093fb 0%, #f5576c 100%)')" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 8px; border: none; border-radius: 4px; cursor: pointer;">🌺</button>
+        </div>
+        <div class="ppt-control">
+            <label>커스텀 색상</label>
+            <input type="color" id="bg-color" onchange="changeBackground(this.value)" value="#667eea">
+        </div>
+    </div>
+
+    <div class="ppt-section">
+        <h4>레이어 관리</h4>
+        <div class="button-group">
+            <button onclick="bringToFront()">🔤 맨앞으로</button>
+            <button onclick="sendToBack()">🔥 맨뒤로</button>
+        </div>
+        <div class="button-group" style="margin-top: 5px;">
+            <button onclick="moveForward()">⬆️ 앞으로</button>
+            <button onclick="moveBackward()">⬇️ 뒤로</button>
+        </div>
+    </div>
+
+    <div class="ppt-section">
+        <h4>정렬</h4>
+        <div class="button-group">
+            <button onclick="alignLeft()">⬅️ 왼쪽</button>
+            <button onclick="alignCenter()">↔️ 가운데</button>
+            <button onclick="alignRight()">➡️ 오른쪽</button>
+        </div>
+        <div class="button-group" style="margin-top: 5px;">
+            <button onclick="alignTop()">⬆️ 위</button>
+            <button onclick="alignMiddle()">↕️ 중간</button>
+            <button onclick="alignBottom()">⬇️ 아래</button>
+        </div>
+    </div>
+
+    <!-- 텍스트 편집 (선택시 표시) -->
+    <div id="text-editor" style="display: none;">
+        <div class="ppt-section">
+            <h4>📝 텍스트 편집</h4>
+            <div class="ppt-control">
+                <textarea id="text-content" rows="3" placeholder="텍스트를 입력하세요" style="width: 100%; padding: 8px; background: #404040; border: 1px solid #555; border-radius: 4px; color: white; font-size: 12px; resize: vertical;"></textarea>
+            </div>
+        </div>
+        
+        <div class="ppt-section">
+            <h4>글꼴 스타일</h4>
+            <div class="ppt-control">
+                <label>크기</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="range" id="text-size" min="12" max="72" value="16" style="flex: 1;">
+                    <span id="text-size-value" style="min-width: 40px; color: #ccc;">16px</span>
+                </div>
+            </div>
+            <div class="ppt-control">
+                <label>색상</label>
+                <input type="color" id="text-color" value="#ffffff" style="width: 100%; height: 35px;">
+            </div>
+            <div class="ppt-control">
+                <label>글꼴</label>
+                <select id="text-font" style="width: 100%; padding: 8px; background: #404040; border: 1px solid #555; border-radius: 4px; color: white;">
+                    <option value="Arial">Arial</option>
+                    <option value="맑은 고딕">맑은 고딕</option>
+                    <option value="나눔고딕">나눔고딕</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Courier New">Courier New</option>
+                </select>
+            </div>
+            <div class="button-group">
+                <button id="bold-btn" onclick="toggleTextBold()">🔤 굵게</button>
+                <button id="italic-btn" onclick="toggleTextItalic()">🔖 기울임</button>
+                <button id="underline-btn" onclick="toggleTextUnderline()">🔒 밑줄</button>
+            </div>
+        </div>
+        
+        <div class="ppt-section">
+            <h4>텍스트 정렬</h4>
+            <div class="button-group">
+                <button onclick="setTextAlign('left')">⬅️ 왼쪽</button>
+                <button onclick="setTextAlign('center')">↔️ 가운데</button>
+                <button onclick="setTextAlign('right')">➡️ 오른쪽</button>
+            </div>
+        </div>
+        
+        <div class="ppt-section">
+            <h4>위치 조정</h4>
+            <div style="display: flex; gap: 10px;">
+                <div class="ppt-control" style="flex: 1;">
+                    <label>X</label>
+                    <input type="number" id="text-x" min="0" max="300" style="width: 100%; padding: 6px; background: #404040; border: 1px solid #555; border-radius: 4px; color: white;">
+                </div>
+                <div class="ppt-control" style="flex: 1;">
+                    <label>Y</label>
+                    <input type="number" id="text-y" min="0" max="500" style="width: 100%; padding: 6px; background: #404040; border: 1px solid #555; border-radius: 4px; color: white;">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 이미지 편집 (선택시 표시) -->
+    <div id="image-editor" style="display: none;">
+        <div class="ppt-section">
+            <h4>🖼️ 이미지 편집</h4>
+            <div class="ppt-control">
+                <label>너비</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="range" id="image-width" min="50" max="280" value="150" style="flex: 1;">
+                    <span id="image-width-value" style="min-width: 50px; color: #ccc;">150px</span>
+                </div>
+            </div>
+            <div class="ppt-control">
+                <label>높이</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="range" id="image-height" min="50" max="450" value="150" style="flex: 1;">
+                    <span id="image-height-value" style="min-width: 50px; color: #ccc;">150px</span>
+                </div>
+            </div>
+            <div class="button-group">
+                <button id="lock-ratio-btn" onclick="toggleAspectRatio()">🔒 비율고정</button>
+                <button onclick="resetImageSize()">↩️ 원래크기</button>
+            </div>
+        </div>
+        
+        <div class="ppt-section">
+            <h4>이미지 효과</h4>
+            <div class="ppt-control">
+                <label>투명도</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="range" id="image-opacity" min="0" max="100" value="100" style="flex: 1;">
+                    <span id="image-opacity-value" style="min-width: 40px; color: #ccc;">100%</span>
+                </div>
+            </div>
+            <div class="ppt-control">
+                <label>회전</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="range" id="image-rotation" min="0" max="360" value="0" style="flex: 1;">
+                    <span id="image-rotation-value" style="min-width: 40px; color: #ccc;">0°</span>
+                </div>
+            </div>
+            <div class="button-group">
+                <button onclick="flipImageH()">↔️ 좌우뒤집기</button>
+                <button onclick="flipImageV()">↕️ 상하뒤집기</button>
+            </div>
+            <div class="button-group" style="margin-top: 5px;">
+                <button onclick="rotateImage(90)">↻ 90° 회전</button>
+                <button onclick="rotateImage(-90)">↺ -90° 회전</button>
+            </div>
+        </div>
+        
+        <div class="ppt-section">
+            <h4>이미지 필터</h4>
+            <div class="button-group">
+                <button onclick="applyImageFilter('none')">🔄 원본</button>
+                <button onclick="applyImageFilter('grayscale')">⚫ 흑백</button>
+            </div>
+            <div class="button-group" style="margin-top: 5px;">
+                <button onclick="applyImageFilter('sepia')">🟤 세피아</button>
+                <button onclick="applyImageFilter('blur')">🌫️ 블러</button>
+            </div>
+        </div>
+        
+        <div class="ppt-section">
+            <h4>위치 조정</h4>
+            <div style="display: flex; gap: 10px;">
+                <div class="ppt-control" style="flex: 1;">
+                    <label>X</label>
+                    <input type="number" id="image-x" min="0" max="300" style="width: 100%; padding: 6px; background: #404040; border: 1px solid #555; border-radius: 4px; color: white;">
+                </div>
+                <div class="ppt-control" style="flex: 1;">
+                    <label>Y</label>
+                    <input type="number" id="image-y" min="0" max="500" style="width: 100%; padding: 6px; background: #404040; border: 1px solid #555; border-radius: 4px; color: white;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 선택된 요소 공통 도구 -->
+    <div id="selected-tools" style="display: none;">
+        <div class="ppt-section">
+            <h4>🎯 선택된 요소</h4>
+            <div class="button-group">
+                <button onclick="copySelectedElement()">📋 복사</button>
+                <button onclick="duplicateElement()">📑 복제</button>
+            </div>
+            <div class="button-group" style="margin-top: 5px;">
+                <button onclick="groupElements()">🔗 그룹</button>
+                <button onclick="deleteSelectedElement()">🗑️ 삭제</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 전체 캔버스 도구 -->
+    <div class="ppt-section">
+        <h4>캔버스 설정</h4>
+        <div class="button-group">
+            <button onclick="clearCanvas()">🗑️ 전체삭제</button>
+            <button onclick="resetCanvas()">↩️ 초기화</button>
+        </div>
+        <div class="ppt-control" style="margin-top: 10px;">
+            <label>확대/축소</label>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button onclick="zoomOut()" style="padding: 5px 10px; background: #555; border: none; color: white; border-radius: 3px; cursor: pointer;">➖</button>
+                <span id="zoom-level" style="color: #ccc; min-width: 50px; text-align: center;">100%</span>
+                <button onclick="zoomIn()" style="padding: 5px 10px; background: #555; border: none; color: white; border-radius: 3px; cursor: pointer;">➕</button>
+            </div>
+        </div>
+    </div>
+</div>

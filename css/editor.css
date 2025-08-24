@@ -1,0 +1,290 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #1a1a1a;
+    color: white;
+    overflow: hidden;
+}
+
+/* 상단 네비게이션 */
+#navbar {
+    height: 50px;
+    background: #2d2d2d;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    border-bottom: 1px solid #404040;
+}
+
+#navbar button {
+    background: #404040;
+    border: none;
+    color: white;
+    padding: 8px 15px;
+    margin-right: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#navbar button:hover {
+    background: #555;
+}
+
+#project-title {
+    margin-left: auto;
+    color: #ccc;
+    font-size: 14px;
+}
+
+/* 메인 편집 영역 */
+#main-editor {
+    display: flex;
+    height: calc(100vh - 50px);
+}
+
+/* 캔버스 영역 */
+#canvas-area {
+    flex: 1;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    min-width: 400px;
+}
+
+#canvas {
+    width: 300px;
+    height: 500px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* PPT 편집기 */
+#ppt-editor {
+    width: 350px;
+    background: #2d2d2d;
+    border-left: 1px solid #404040;
+    border-right: 1px solid #404040;
+    display: flex;
+    flex-direction: column;
+}
+
+#ppt-header {
+    padding: 15px;
+    background: #333;
+    border-bottom: 1px solid #404040;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+#ppt-content {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+.ppt-section {
+    margin-bottom: 20px;
+}
+
+.ppt-section h4 {
+    margin-bottom: 10px;
+    color: #ccc;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.ppt-control {
+    margin-bottom: 10px;
+}
+
+.ppt-control label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 12px;
+    color: #bbb;
+}
+
+.ppt-control input,
+.ppt-control select,
+.ppt-control textarea {
+    width: 100%;
+    padding: 8px;
+    background: #404040;
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: white;
+    font-size: 12px;
+}
+
+.ppt-control button {
+    width: 100%;
+    padding: 8px;
+    background: #0066cc;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.ppt-control button:hover {
+    background: #0052a3;
+}
+
+/* 소스 패널 */
+#source-panel {
+    width: 300px;
+    background: #2d2d2d;
+    display: flex;
+    flex-direction: column;
+}
+
+#source-tabs {
+    display: flex;
+    background: #333;
+    border-bottom: 1px solid #404040;
+}
+
+.source-tab {
+    flex: 1;
+    padding: 12px 8px;
+    background: none;
+    border: none;
+    color: #bbb;
+    cursor: pointer;
+    font-size: 11px;
+    text-align: center;
+    border-bottom: 2px solid transparent;
+}
+
+.source-tab.active {
+    color: white;
+    border-bottom-color: #0066cc;
+}
+
+.source-tab:hover {
+    background: #404040;
+}
+
+#source-content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.source-section {
+    padding: 15px;
+    display: none;
+}
+
+.source-section.active {
+    display: block;
+}
+
+.source-item {
+    background: #404040;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 8px;
+    cursor: grab;
+    transition: all 0.2s;
+    border: 2px dashed transparent;
+}
+
+.source-item:hover {
+    background: #4a4a4a;
+    transform: translateY(-2px);
+}
+
+.source-item:active {
+    cursor: grabbing;
+}
+
+.source-item.dragging {
+    opacity: 0.5;
+    border-color: #0066cc;
+}
+
+.source-item-title {
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.source-item-desc {
+    font-size: 11px;
+    color: #bbb;
+}
+
+/* 추가 스타일 */
+.button-group {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.button-group button {
+    flex: 1;
+    padding: 5px;
+    background: #555;
+    border: none;
+    color: white;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 10px;
+}
+
+.button-group button:hover {
+    background: #666;
+}
+
+.button-group button.active {
+    background: #0066cc;
+}
+
+/* 드래그오버 효과 */
+#canvas.drag-over {
+    border: 3px dashed #0066cc;
+    background: rgba(0, 102, 204, 0.1);
+}
+
+/* 캔버스 내 요소들 */
+.canvas-element {
+    position: absolute;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+}
+
+.canvas-element:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.canvas-element.selected {
+    border-color: #0066cc;
+}
+
+.canvas-text {
+    padding: 5px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 4px;
+    color: white;
+    font-size: 16px;
+    min-width: 50px;
+    text-align: center;
+}
+
+.canvas-image {
+    border-radius: 4px;
+    max-width: 200px;
+    max-height: 200px;
+}

@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>쇼츠 퀵에디터</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            margin: 0;
+            padding-top: 80px;
+        }
+
+        /* 네비게이션 바 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            height: 70px;
+        }
+
+        .nav-brand h2 {
+            color: #333;
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #666;
+            font-weight: 500;
+            transition: color 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: #667eea;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 0;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .main-action {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .new-project-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .new-project-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+        }
+
+        .projects-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .section-header h2 {
+            font-size: 1.5rem;
+            color: #333;
+        }
+
+        .refresh-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .search-filter {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-box input:focus {
+            border-color: #667eea;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #e1e5e9;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .project-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+
+        .project-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .project-date {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .project-status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+
+        .status-editing { background: #fff3cd; color: #856404; }
+        .status-completed { background: #d4edda; color: #155724; }
+        .status-rendering { background: #cce7ff; color: #004085; }
+
+        .project-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .edit-btn { background: #667eea; color: white; }
+        .delete-btn { background: #ff7675; color: white; }
+
+        .action-btn:hover { opacity: 0.8; }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #666;
+        }
+
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .empty-state p {
+            opacity: 0.8;
+        }
+
+        .new-project-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-header h2 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #667eea;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .cancel-btn {
+            background: #ddd;
+            color: #666;
+        }
+
+        .create-btn {
+            background: #667eea;
+            color: white;
+        }
+
+        .modal-btn:hover { opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <!-- 상단 네비게이션 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h2>🎬 쇼츠 퀵에디터</h2>
+            </div>
+            <div class="nav-menu">
+                <a href="#" class="nav-link active">🏠 홈</a>
+                <a href="#" class="nav-link" onclick="showProjectsPage()">📁 프로젝트</a>
+                <a href="#" class="nav-link" onclick="showHelpPage()">❓ 도움말</a>
+                <a href="#" class="nav-link" onclick="showAdminLogin()">🔐 관리자</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- 헤더 -->
+        <div class="header">
+            <h1>환영합니다!</h1>
+            <div class="subtitle">올인원 쇼츠 제작 시스템</div>
+        </div>
+
+        <!-- 새 프로젝트 버튼 -->
+        <div class="main-action">
+            <button class="new-project-btn" onclick="showNewProjectModal()">
+                ➕ 새 프로젝트 만들기
+            </button>
+        </div>
+
+        <!-- 프로젝트 섹션 -->
+        <div class="projects-section">
+            <div class="section-header">
+                <h2>📋 내 프로젝트</h2>
+                <button class="refresh-btn" onclick="loadProjects()">🔄 새로고침</button>
+            </div>
+
+            <!-- 검색 및 필터 -->
+            <div class="search-filter">
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="프로젝트 이름으로 검색..." onkeyup="searchProjects()">
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="filterProjects('all')">전체</button>
+                    <button class="filter-btn" onclick="filterProjects('editing')">편집중</button>
+                    <button class="filter-btn" onclick="filterProjects('completed')">완성됨</button>
+                    <button class="filter-btn" onclick="filterProjects('rendering')">렌더링</button>
+                </div>
+            </div>
+
+            <!-- 프로젝트 목록 -->
+            <div id="projects-list">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>프로젝트를 불러오는 중...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 새 프로젝트 모달 -->
+    <div id="new-project-modal" class="new-project-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>새 프로젝트 만들기</h2>
+                <p>프로젝트 이름을 입력하세요</p>
+            </div>
+            <div class="form-group">
+                <label for="project-name">프로젝트 이름</label>
+                <input type="text" id="project-name" placeholder="예: 카페 브이로그" maxlength="50">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn cancel-btn" onclick="hideNewProjectModal()">취소</button>
+                <button class="modal-btn create-btn" onclick="createNewProject()">만들기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 관리자 로그인 모달 -->
+    <div id="admin-login-modal" class="new-project-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🔐 관리자 로그인</h2>
+                <p>관리자 계정으로 로그인하세요</p>
+            </div>
+            <div class="form-group">
+                <label for="admin-id">관리자 ID</label>
+                <input type="text" id="admin-id" placeholder="관리자 ID">
+            </div>
+            <div class="form-group">
+                <label for="admin-password">비밀번호</label>
+                <input type="password" id="admin-password" placeholder="비밀번호">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn cancel-btn" onclick="hideAdminLoginModal()">취소</button>
+                <button class="modal-btn create-btn" onclick="adminLogin()">로그인</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            getDocs, 
+            deleteDoc, 
+            doc,
+            query,
+            orderBy
+        } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+        
+        // Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyAUIaUeFp0BIZVlMpYwNe86_JP6Nn1DG2g",
+            authDomain: "m-quick-editor.firebaseapp.com",
+            projectId: "m-quick-editor",
+            storageBucket: "m-quick-editor.firebasestorage.app",
+            messagingSenderId: "84470480514",
+            appId: "1:84470480514:web:f44692b6f7f97f201fbe9b"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        // 전역 변수
+        let allProjects = [];
+        let filteredProjects = [];
+        let currentFilter = 'all';
+        let currentUser = null;
+
+        // 페이지 로드시 게스트 로그인
+        window.addEventListener('load', async () => {
+            try {
+                await signInAnonymously(auth);
+                console.log('게스트 로그인 성공');
+            } catch (error) {
+                console.error('게스트 로그인 실패:', error);
+            }
+        });
+
+        // 인증 상태 변화 감지
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            loadProjects();
+        });
+
+        // 새 프로젝트 모달 표시
+        window.showNewProjectModal = function() {
+            document.getElementById('new-project-modal').style.display = 'block';
+            document.getElementById('project-name').focus();
+        }
+        
+        // 새 프로젝트 모달 숨김
+        window.hideNewProjectModal = function() {
+            document.getElementById('new-project-modal').style.display = 'none';
+            document.getElementById('project-name').value = '';
+        }
+        
+        // 새 프로젝트 생성
+        window.createNewProject = async function() {
+            const projectName = document.getElementById('project-name').value.trim();
+            
+            if (!projectName) {
+                alert('프로젝트 이름을 입력해주세요!');
+                return;
+            }
+            
+            try {
+                const newProject = {
+                    name: projectName,
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                    status: 'editing',
+                    elements: [],
+                    settings: {
+                        duration: 30,
+                        resolution: '1080x1920',
+                        fps: 30
+                    }
+                };
+                
+                const docRef = await addDoc(collection(db, "projects"), newProject);
+                console.log('새 프로젝트 생성됨:', docRef.id);
+                
+                hideNewProjectModal();
+                loadProjects();
+                
+                // 편집 페이지로 이동
+                window.location.href = `editor.html?id=${docRef.id}&name=${projectName}`;
+                
+            } catch (error) {
+                console.error('프로젝트 생성 실패:', error);
+                alert('프로젝트 생성에 실패했습니다.');
+            }
+        }
+        
+        // 프로젝트 목록 로드
+        window.loadProjects = async function() {
+            try {
+                document.getElementById('projects-list').innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>프로젝트를 불러오는 중...</p>
+                    </div>
+                `;
+                
+                const q = query(
+                    collection(db, "projects"), 
+                    orderBy("updated_at", "desc")
+                );
+                const querySnapshot = await getDocs(q);
+                
+                allProjects = [];
+                querySnapshot.forEach((doc) => {
+                    allProjects.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                
+                filteredProjects = [...allProjects];
+                displayProjects();
+                
+            } catch (error) {
+                console.error('프로젝트 로드 실패:', error);
+                document.getElementById('projects-list').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">❌</div>
+                        <h3>프로젝트를 불러올 수 없습니다</h3>
+                        <p>네트워크 연결을 확인해주세요</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 프로젝트 표시
+        function displayProjects() {
+            const container = document.getElementById('projects-list');
+            
+            if (filteredProjects.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📁</div>
+                        <h3>프로젝트가 없습니다</h3>
+                        <p>새 프로젝트를 만들어서 시작해보세요!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const projectsHTML = filteredProjects.map(project => {
+                const date = project.created_at?.toDate?.() || new Date(project.created_at);
+                const formattedDate = date.toLocaleString('ko-KR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                return `
+                    <div class="project-card">
+                        <div class="project-title">${project.name}</div>
+                        <div class="project-date">생성: ${formattedDate}</div>
+                        <div class="project-status status-${project.status}">${getStatusText(project.status)}</div>
+                        <div class="project-actions">
+                            <button class="action-btn edit-btn" onclick="openEditor('${project.id}', '${project.name}')">📝 편집</button>
+                            <button class="action-btn delete-btn" onclick="deleteProject('${project.id}', '${project.name}')">🗑️ 삭제</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = `<div class="projects-grid">${projectsHTML}</div>`;
+        }
+        
+        // 상태 텍스트 변환
+        function getStatusText(status) {
+            const statusMap = {
+                'editing': '편집중',
+                'completed': '완성됨',
+                'rendering': '렌더링중'
+            };
+            return statusMap[status] || status;
+        }
+        
+        // 편집기 열기
+        window.openEditor = function(projectId, projectName) {
+            window.location.href = `editor.html?id=${projectId}&name=${encodeURIComponent(projectName)}`;
+        }
+        
+        // 프로젝트 삭제
+        window.deleteProject = async function(projectId, projectName) {
+            if (!confirm(`"${projectName}" 프로젝트를 정말 삭제하시겠습니까?\n삭제된 프로젝트는 복구할 수 없습니다.`)) {
+                return;
+            }
+            
+            try {
+                await deleteDoc(doc(db, "projects", projectId));
+                console.log('프로젝트 삭제됨:', projectId);
+                loadProjects();
+            } catch (error) {
+                console.error('프로젝트 삭제 실패:', error);
+                alert('프로젝트 삭제에 실패했습니다.');
+            }
+        }
+        
+        // 프로젝트 검색
+        window.searchProjects = function() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+            
+            if (searchTerm === '') {
+                filteredProjects = allProjects.filter(project => {
+                    if (currentFilter === 'all') return true;
+                    return project.status === currentFilter;
+                });
+            } else {
+                filteredProjects = allProjects.filter(project => {
+                    const matchesSearch = project.name.toLowerCase().includes(searchTerm);
+                    const matchesFilter = currentFilter === 'all' || project.status === currentFilter;
+                    return matchesSearch && matchesFilter;
+                });
+            }
+            
+            displayProjects();
+        }
+        
+        // 프로젝트 필터링
+        window.filterProjects = function(status) {
+            currentFilter = status;
+            
+            // 필터 버튼 활성화
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+            
+            filteredProjects = allProjects.filter(project => {
+                const matchesFilter = status === 'all' || project.status === status;
+                const matchesSearch = searchTerm === '' || project.name.toLowerCase().includes(searchTerm);
+                return matchesFilter && matchesSearch;
+            });
+            
+            displayProjects();
+        }
+        
+        // Enter키 이벤트
+        document.getElementById('project-name').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') createNewProject();
+        });
+        
+        // 모달 외부 클릭시 닫기
+        document.getElementById('new-project-modal').addEventListener('click', function(e) {
+            if (e.target === this) hideNewProjectModal();
+        });
+
+        // 네비게이션 함수들
+        window.showProjectsPage = function() {
+            document.querySelector('.projects-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        window.showHelpPage = function() {
+            alert('도움말 페이지 (구현 예정)');
+        }
+
+        // 관리자 로그인 관련 함수들
+        window.showAdminLogin = function() {
+            document.getElementById('admin-login-modal').style.display = 'block';
+            document.getElementById('admin-id').focus();
+        }
+
+        window.hideAdminLoginModal = function() {
+            document.getElementById('admin-login-modal').style.display = 'none';
+            document.getElementById('admin-id').value = '';
+            document.getElementById('admin-password').value = '';
+        }
+
+        window.adminLogin = function() {
+            const adminId = document.getElementById('admin-id').value.trim();
+            const adminPassword = document.getElementById('admin-password').value;
+
+            // 하드코딩된 관리자 계정
+            if (adminId === 'admin' && adminPassword === 'admin123') {
+                hideAdminLoginModal();
+                window.location.href = 'admin.html';
+            } else {
+                alert('관리자 계정 정보가 올바르지 않습니다.');
+                document.getElementById('admin-id').focus();
+            }
+        }
+
+        // Enter키 이벤트 - 관리자 로그인
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const modal = document.getElementById('admin-login-modal');
+                if (modal.style.display === 'block') {
+                    adminLogin();
+                }
+            }
+        });
+
+        // 관리자 모달 외부 클릭시 닫기
+        document.addEventListener('click', function(e) {
+            const adminModal = document.getElementById('admin-login-modal');
+            if (e.target === adminModal) {
+                hideAdminLoginModal();
+            }
+        });
+    </script>
+</body>
+</html>

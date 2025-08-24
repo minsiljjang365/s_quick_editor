@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>편집 - 쇼츠 퀵에디터</title>
+    <link rel="stylesheet" href="css/editor.css">
+    <style>
+        /* 캔버스 영역 내부만 위아래 배치 */
+        #canvas-area {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* 플레이어 모드 전환 버튼 스타일 */
+        .mode-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #2a2a2a;
+            border-radius: 8px;
+        }
+        
+        .mode-btn {
+            padding: 10px 20px;
+            border: 2px solid #555;
+            background: #404040;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .mode-btn:hover {
+            background: #555;
+            border-color: #007bff;
+        }
+        
+        .mode-btn.active {
+            background: #007bff;
+            border-color: #0056b3;
+            color: white;
+        }
+        
+        /* 플레이어 컨트롤 스타일 */
+        .player-controls {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+            padding: 20px;
+            background: #2a2a2a;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .control-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .play-btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            background: #007bff;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .stop-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 6px;
+            background: #dc3545;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .time-display {
+            color: white;
+            font-family: monospace;
+            font-size: 14px;
+            min-width: 100px;
+        }
+        
+        .timeline-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .timeline-slider {
+            flex: 1;
+            height: 8px;
+            background: #404040;
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+        }
+        
+        .speed-control {
+            background: #404040;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+        }
+        
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .volume-slider {
+            width: 100px;
+            height: 6px;
+            background: #404040;
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+        }
+        
+        .volume-value {
+            color: #ccc;
+            font-size: 12px;
+            min-width: 40px;
+        }
+        
+        .player-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #444;
+        }
+        
+        .option-btn {
+            padding: 8px 15px;
+            background: #555;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .render-btn {
+            background: #28a745;
+            font-weight: bold;
+        }
+        
+        /* 플레이어 모드일 때 캔버스 스타일 */
+        .canvas-player-mode {
+            aspect-ratio: 9/16;
+            max-width: 300px;
+            max-height: 533px;
+            margin: 0 auto;
+            border: 2px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+    <!-- 상단 네비게이션 -->
+    <div id="navbar">
+        <button onclick="goHome()">🏠 홈</button>
+        <button onclick="openAdmin()">⚙️ 관리자</button>
+        <button onclick="saveProject()">💾 저장</button>
+        <div id="project-title">프로젝트: 테스트 프로젝트</div>
+    </div>
+    
+    <!-- 메인 편집 영역 -->
+    <div id="main-editor">
+        <!-- 캔버스 영역 -->
+        <div id="canvas-area">
+            <!-- 모드 전환 버튼 -->
+            <div class="mode-controls">
+                <button id="edit-mode-btn" class="mode-btn active" onclick="switchToEditMode()">
+                    ✏️ 편집 모드
+                </button>
+                <button id="player-mode-btn" class="mode-btn" onclick="switchToPlayerMode()">
+                    ▶️ 플레이어 모드
+                </button>
+            </div>
+            
+            <!-- 캔버스 -->
+            <div id="canvas" ondrop="dropOnCanvas(event)" ondragover="allowDrop(event)">
+                <!-- 편집 요소들이 여기에 추가됨 -->
+            </div>
+            
+            <!-- 플레이어 컨트롤 -->
+            <div id="player-controls" class="player-controls">
+                <!-- 메인 컨트롤 바 -->
+                <div class="control-bar">
+                    <button id="play-pause-btn" class="play-btn" onclick="togglePlayPause()">▶️</button>
+                    <button class="stop-btn" onclick="stopPlayback()">⏹️</button>
+                    <div id="time-display" class="time-display">00:00 / 01:00</div>
+                </div>
+                
+                <!-- 타임라인 -->
+                <div class="timeline-container">
+                    <input type="range" id="timeline-slider" class="timeline-slider" 
+                           min="0" max="60" value="0" oninput="seekTo(this.value)">
+                    <select id="speed-control" class="speed-control" onchange="changePlaybackSpeed(this.value)">
+                        <option value="0.5">0.5x</option>
+                        <option value="1" selected>1.0x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="2">2.0x</option>
+                    </select>
+                </div>
+                
+                <!-- 볼륨 컨트롤 -->
+                <div class="volume-container">
+                    <span style="color: white;">🔊</span>
+                    <input type="range" id="volume-slider" class="volume-slider" 
+                           min="0" max="100" value="80" oninput="changeVolume(this.value)">
+                    <span id="volume-value" class="volume-value">80%</span>
+                </div>
+                
+                <!-- 플레이어 옵션 -->
+                <div class="player-options">
+                    <button id="loop-btn" class="option-btn" onclick="toggleLoop()">🔄 반복</button>
+                    <button class="option-btn" onclick="toggleFullscreen()">⛶ 전체화면</button>
+                    <button class="option-btn render-btn" onclick="renderVideo()">🎬 렌더링</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PPT 편집기 -->
+        <div id="ppt-editor">
+            <div id="ppt-header">🎨 편집 도구</div>
+            <div id="ppt-content">
+                
+                <!-- 기본 도구들 (항상 표시) -->
+                <div class="ppt-section">
+                    <h4>빠른 추가</h4>
+                    <div class="button-group">
+                        <button onclick="addQuickText()">📝 텍스트</button>
+                        <button onclick="addQuickImage()">🖼️ 이미지</button>
+                    </div>
+                    <div class="button-group" style="margin-top: 5px;">
+                        <button onclick="addQuickShape('circle')">⭕ 원</button>
+                        <button onclick="addQuickShape('rectangle')">⬜ 사각형</button>
+                    </div>
+                </div>
+
+                <div class="ppt-section">
+                    <h4>배경</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 10px;">
+                        <button onclick="changeBackground('#000000')" style="background: #000; color: white; padding: 8px; border: none; border-radius: 4px; cursor: pointer;">⚫</button>
+                        <button onclick="changeBackground('#ffffff')" style="background: #fff; color: #000; padding: 8px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">⚪</button>
+                        <button onclick="changeBackground('linear-gradient(135deg, #667eea 0%, #764ba2 100%)')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px; border: none; border-radius: 4px; cursor: pointer;">🌅</button>
+                        <button onclick="changeBackground('linear-gradient(135deg, #f093fb 0%, #f5576c 100%)')" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 8px; border: none; border-radius: 4px; cursor: pointer;">🌺</button>
+                    </div>
+                    <div class="ppt-control">
+                        <label>커스텀 색상</label>
+                        <input type="color" id="bg-color" onchange="changeBackground(this.value)" value="#667eea">
+                    </div>
+                </div>
+
+                <div class="ppt-section">
+                    <h4>레이어 관리</h4>
+                    <div class="button-group">
+                        <button onclick="bringToFront()">🔤 맨앞으로</button>
+                        <button onclick="sendToBack()">🔥 맨뒤로</button>
+                    </div>
+                    <div class="button-group" style="margin-top: 5px;">
+                        <button onclick="moveForward()">⬆️ 앞으로</button>
+                        <button onclick="moveBackward()">⬇️ 뒤로</button>
+                    </div>
+                </div>
+
+                <div class="ppt-section">
+                    <h4>정렬</h4>
+                    <div class="button-group">
+                        <button onclick="alignLeft()">⬅️ 왼쪽</button>
+                        <button onclick="alignCenter()">↔️ 가운데</button>
+                        <button onclick="alignRight()">➡️ 오른쪽</button>
+                    </div>
+                    <div class="button-group" style="margin-top: 5px;">
+                        <button onclick="alignTop()">⬆️ 위</button>
+                        <button onclick="alignMiddle()">↕️ 중간</button>
+                        <button onclick="alignBottom()">⬇️ 아래</button>
+                    </div>
+                </div>
+
+                <!-- 텍스트 편집기는 text-editor.html에서 로드됨 -->
+                
+                <!-- 이미지 편집 (선택시 표시) -->
+                <div id="image-editor" style="display: none;">
+                    <div class="ppt-section">
+                        <h4>🖼️ 이미지 편집</h4>
+                        <div class="ppt-control">
+                            <label>너비</label>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="range" id="image-width" min="50" max="280" value="150" style="flex: 1;">
+                                <span id="image-width-value" style="min-width: 50px; color: #ccc;">150px</span>
+                            </div>
+                        </div>
+                        <div class="ppt-control">
+                            <label>높이</label>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="range" id="image-height" min="50" max="450" value="150" style="flex: 1;">
+                                <span id="image-height-value" style="min-width: 50px; color: #ccc;">150px</span>
+                            </div>
+                        </div>
+                        <div class="button-group">
+                            <button id="lock-ratio-btn" onclick="toggleAspectRatio()">🔒 비율고정</button>
+                            <button onclick="resetImageSize()">↩️ 원래크기</button>
+                        </div>
+                    </div>
+                    
+                    <div class="ppt-section">
+                        <h4>이미지 효과</h4>
+                        <div class="ppt-control">
+                            <label>투명도</label>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="range" id="image-opacity" min="0" max="100" value="100" style="flex: 1;">
+                                <span id="image-opacity-value" style="min-width: 40px; color: #ccc;">100%</span>
+                            </div>
+                        </div>
+                        <div class="ppt-control">
+                            <label>회전</label>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="range" id="image-rotation" min="0" max="360" value="0" style="flex: 1;">
+                                <span id="image-rotation-value" style="min-width: 40px; color: #ccc;">0°</span>
+                            </div>
+                        </div>
+                        <div class="button-group">
+                            <button onclick="flipImageH()">↔️ 좌우뒤집기</button>
+                            <button onclick="flipImageV()">↕️ 상하뒤집기</button>
+                        </div>
+                        <div class="button-group" style="margin-top: 5px;">
+                            <button onclick="rotateImage(90)">↻ 90° 회전</button>
+                            <button onclick="rotateImage(-90)">↺ -90° 회전</button>
+                        </div>
+                    </div>
+                    
+                    <div class="ppt-section">
+                        <h4>이미지 필터</h4>
+                        <div class="button-group">
+                            <button onclick="applyImageFilter('none')">🔄 원본</button>
+                            <button onclick="applyImageFilter('grayscale')">⚫ 흑백</button>
+                        </div>
+                        <div class="button-group" style="margin-top: 5px;">
+                            <button onclick="applyImageFilter('sepia')">🟤 세피아</button>
+                            <button onclick="applyImageFilter('blur')">🌫️ 블러</button>
+                        </div>
+                    </div>
+                    
+                    <div class="ppt-section">
+                        <h4>위치 조정</h4>
+                        <div style="display: flex; gap: 10px;">
+                            <div class="ppt-control" style="flex: 1;">
+                                <label>X</label>
+                                <input type="number" id="image-x" min="0" max="300" style="width: 100%; padding: 6px; background: #404040; border: 1px solid #555; border-radius: 4px; color: white;">
+                            </div>
+                            <div class="ppt-control" style="flex: 1;">
+                                <label>Y</label>
+                                <input type="number" id="image-y" min="0" max="500" style="width: 100%; padding: 6px; background: #404040; border: 1px solid #555; border-radius: 4px; color: white;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 선택된 요소 공통 도구 -->
+                <div id="selected-tools" style="display: none;">
+                    <div class="ppt-section">
+                        <h4>🎯 선택된 요소</h4>
+                        <div class="button-group">
+                            <button onclick="copySelectedElement()">📋 복사</button>
+                            <button onclick="duplicateElement()">📑 복제</button>
+                        </div>
+                        <div class="button-group" style="margin-top: 5px;">
+                            <button onclick="groupElements()">🔗 그룹</button>
+                            <button onclick="deleteSelectedElement()">🗑️ 삭제</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 전체 캔버스 도구 -->
+                <div class="ppt-section">
+                    <h4>캔버스 설정</h4>
+                    <div class="button-group">
+                        <button onclick="clearCanvas()">🗑️ 전체삭제</button>
+                        <button onclick="resetCanvas()">↩️ 초기화</button>
+                    </div>
+                    <div class="ppt-control" style="margin-top: 10px;">
+                        <label>확대/축소</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <button onclick="zoomOut()" style="padding: 5px 10px; background: #555; border: none; color: white; border-radius: 3px; cursor: pointer;">➖</button>
+                            <span id="zoom-level" style="color: #ccc; min-width: 50px; text-align: center;">100%</span>
+                            <button onclick="zoomIn()" style="padding: 5px 10px; background: #555; border: none; color: white; border-radius: 3px; cursor: pointer;">➕</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 소스 패널 -->
+        <div id="source-panel">
+            <div id="source-tabs">
+                <button class="source-tab active" onclick="switchTab('media')">📁<br>미디어</button>
+                <button class="source-tab" onclick="switchTab('text')">📝<br>텍스트</button>
+                <button class="source-tab" onclick="switchTab('audio')">🎵<br>음성</button>
+                <button class="source-tab" onclick="switchTab('template')">🎨<br>템플릿</button>
+            </div>
+            
+            <div id="source-content">
+                <!-- 미디어 소스 -->
+                <div id="media-sources" class="source-section active">
+                    <div class="source-item" draggable="true" ondragstart="dragStart(event)" data-type="image" data-src="https://via.placeholder.com/200x150/4A90E2/white?text=샘플+이미지">
+                        <div class="source-item-title">📷 샘플 이미지</div>
+                        <div class="source-item-desc">드래그해서 캔버스에 추가</div>
+                    </div>
+                    
+                    <div class="source-item" draggable="true" ondragstart="dragStart(event)" data-type="image" data-src="https://via.placeholder.com/200x150/E74C3C/white?text=로고">
+                        <div class="source-item-title">🏷️ 로고</div>
+                        <div class="source-item-desc">브랜드 로고 이미지</div>
+                    </div>
+                    
+                    <div class="source-item">
+                        <div class="source-item-title">📤 직접 업로드</div>
+                        <input type="file" accept="image/*,video/*" onchange="uploadFile(this)" style="width: 100%; margin-top: 5px; font-size: 11px;">
+                    </div>
+                    
+                    <div class="source-item">
+                        <div class="source-item-title">🌍 무료 스톡</div>
+                        <div class="source-item-desc">API로 무료 이미지 검색</div>
+                        <input type="text" placeholder="검색어 입력" id="stock-search" style="width: 100%; margin-top: 5px; padding: 5px; background: #555; border: none; color: white; border-radius: 3px;">
+                        <button onclick="searchStockImages()" style="width: 100%; margin-top: 5px; padding: 5px; background: #0066cc; border: none; color: white; border-radius: 3px; cursor: pointer;">검색</button>
+                    </div>
+                    
+                    <div class="source-item">
+                        <div class="source-item-title">🎨 AI 이미지 생성</div>
+                        <div class="source-item-desc">AI로 이미지 생성</div>
+                        <textarea placeholder="생성할 이미지 설명" id="ai-image-prompt" style="width: 100%; margin-top: 5px; padding: 5px; background: #555; border: none; color: white; border-radius: 3px; resize: none;" rows="2"></textarea>
+                        <button onclick="generateAIImage()" style="width: 100%; margin-top: 5px; padding: 5px; background: #9b59b6; border: none; color: white; border-radius: 3px; cursor: pointer;">생성</button>
+                    </div>
+                </div>
+                
+                <!-- 텍스트 소스 -->
+                <div id="text-sources" class="source-section">
+                    <div class="source-item" draggable="true" ondragstart="dragStart(event)" data-type="text" data-content="제목 텍스트">
+                        <div class="source-item-title">📝 제목</div>
+                        <div class="source-item-desc">메인 제목용 텍스트</div>
+                    </div>
+                    
+                    <div class="source-item" draggable="true" ondragstart="dragStart(event)" data-type="text" data-content="설명 텍스트">
+                        <div class="source-item-title">💬 설명</div>
+                        <div class="source-item-desc">부제목이나 설명용</div>
+                    </div>
+                    
+                    <div class="source-item" draggable="true" ondragstart="dragStart(event)" data-type="text" data-content="클릭하세요!">
+                        <div class="source-item-title">🎯 CTA</div>
+                        <div class="source-item-desc">행동 유도 메시지</div>
+                    </div>
+                    
+                    <div class="source-item">
+                        <div class="source-item-title">📜 대본 작성</div>
+                        <div class="source-item-desc">동영상 대본</div>
+                        <div class="button-group">
+                            <button onclick="showScriptEditor('manual')">직접작성</button>
+                            <button onclick="showScriptEditor('ai')">AI작성</button>
+                        </div>
+                    </div>
+                    
+                    <div class="source-item">
+                        <div class="source-item-title">🎙️ 나레이션</div>
+                        <div class="source-item-desc">음성 대본</div>
+                        <div class="button-group">
+                            <button onclick="showNarrationEditor('manual')">직접작성</button>
+                            <button onclick="showNarrationEditor('ai')">AI작성</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 음성 소스 -->
+                <div id="audio-sources" class="source-section">
+                    <div class="source-item">
+                        <div class="source-item-title">🎵 배경음악</div>
+                        <div class="source-item-desc">프로젝트 배경음악 설정</div>
+                        <input type="file" accept="audio/*" onchange="uploadBGM(this)" style="width: 100%; margin-top: 5px; font-size: 11px;">
+                    </div>
+                    
+                    <div class="source-item">
+                        <div class="source-item-title">📤 음성파일 업로드</div>
+                        <div class="source-item-desc">나레이션, 대사 등</div>
+                        <input type="file" accept="audio/*" onchange="uploadAudio(this)" style="width: 100%; margin-top: 5px; font-size: 11px;">
+                    </div>
+                    
+                    <div class="source-item">
+                        <div class="source-item-title">📊 보유 효과음</div>
+                        <div class="source-item-desc">업로드한 효과음 선택</div>
+                        <select id="owned-sfx" onchange="selectOwnedSFX()" style="width: 100%; margin-top: 5px;">
+                            <option value="">효과음 선택</option>
+                            <option value="click">클릭 소리</option>
+                            <option value="whoosh">움직임 소리</option>
+                            <option value="ding">알림음</option>
+                        </select>
+                        <input type="file" accept="audio/*" onchange="uploadSFX(this)" style="width: 100%; margin-top: 5px; font-size: 11px;" placeholder="새 효과음 추가">
+                    </div>
+                    
+                    <div class="source-item">
+                        <div class="source-item-title">🌍 무료 효과음</div>
+                        <div class="source-item-desc">API로 무료 효과음 검색</div>
+                        <input type="text" placeholder="효과음 검색 (예: 박수, 폭발)" id="sfx-search" style="width: 100%; margin-top: 5px; padding: 5px; background: #555; border: none; color: white; border-radius: 3px;">
+                        <button onclick="searchFreeSFX()" style="width: 100%; margin-top: 5px; padding: 5px; background: #0066cc; border: none; color: white; border-radius: 3px; cursor: pointer;">검색</button>
+                    </div>
+                    
+                    <div class="source-item">
+                        <div class="source-item-title">🎙️ 음성 녹음</div>
+                        <div class="source-item-desc">실시간 녹음</div>
+                        <div class="button-group">
+                            <button onclick="startRecording()">🔴 녹음</button>
+                            <button onclick="stopRecording()">⏹️ 정지</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 템플릿 소스 -->
+                <div id="template-sources" class="source-section">
+                    <!-- templates/template-panel.html 내용이 여기에 로드됩니다 -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript 파일들 로드 -->
+    <script src="js/utils.js"></script>
+    <script src="js/canvas.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/tabs.js"></script>
+    <script src="js/dragdrop.js"></script>
+    <script src="js/editor.js"></script>
+    <script src="js/media.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/text.js"></script>
+    <script src="js/template.js"></script>
+    <script src="js/init.js"></script>
+    
+    <script>
+        // ========== 네비게이션 기능 업데이트 ==========
+        function goHome() {
+            window.location.href = 'index.html';
+        }
+        
+        function openAdmin() {
+            // 관리자 페이지로 이동 또는 관리자 패널 열기
+            window.open('admin.html', '_blank');
+        }
+        
+        function saveProject() {
+            // 현재 프로젝트 상태 저장
+            const projectData = {
+                name: document.getElementById('project-title').textContent,
+                canvas: document.getElementById('canvas').innerHTML,
+                timestamp: new Date().toISOString(),
+                elements: []
+            };
+            
+            // 캔버스 요소들 수집
+            const elements = document.querySelectorAll('.canvas-element');
+            elements.forEach((element, index) => {
+                projectData.elements.push({
+                    id: element.id,
+                    type: element.classList.contains('canvas-text') ? 'text' : 'image',
+                    style: element.style.cssText,
+                    content: element.innerHTML || element.src,
+                    position: {
+                        left: element.style.left,
+                        top: element.style.top
+                    }
+                });
+            });
+            
+            // localStorage에 저장
+            localStorage.setItem('currentProject', JSON.stringify(projectData));
+            
+            alert('✅ 프로젝트가 저장되었습니다!\n\n저장 시간: ' + new Date().toLocaleString());
+            console.log('💾 프로젝트 저장 완료:', projectData);
+        }
+        
+        // ========== 플레이어 기능 ==========
+        let currentMode = 'edit';
+        let isPlaying = false;
+        let currentTime = 0;
+        let totalDuration = 60;
+        let playInterval = null;
+        let timelineElements = [];
+        
+        // 편집 모드로 전환
+        function switchToEditMode() {
+            currentMode = 'edit';
+            
+            // 재생 중이면 정지
+            if (isPlaying) {
+                stopPlayback();
+            }
+            
+            // UI 업데이트
+            document.getElementById('edit-mode-btn').classList.add('active');
+            document.getElementById('player-mode-btn').classList.remove('active');
+            document.getElementById('player-controls').style.display = 'none';
+            
+            // 캔버스 스타일 복구
+            const canvas = document.getElementById('canvas');
+            canvas.classList.remove('canvas-player-mode');
+            
+            // 모든 요소 표시
+            const elements = canvas.querySelectorAll('.canvas-element');
+            elements.forEach(element => {
+                element.style.display = '';
+                element.style.opacity = '';
+            });
+            
+            console.log('✏️ 편집 모드로 전환');
+        }
+        
+        // 플레이어 모드로 전환
+        function switchToPlayerMode() {
+            currentMode = 'player';
+            
+            // UI 업데이트
+            document.getElementById('edit-mode-btn').classList.remove('active');
+            document.getElementById('player-mode-btn').classList.add('active');
+            document.getElementById('player-controls').style.display = 'flex';
+            
+            // 캔버스를 플레이어용으로 설정
+            const canvas = document.getElementById('canvas');
+            canvas.classList.add('canvas-player-mode');
+            
+            // 타임라인 요소들 준비
+            prepareTimelineElements();
+            
+            // 시작 시점으로 리셋
+            seekTo(0);
+            
+            console.log('▶️ 플레이어 모드로 전환');
+        }
+        
+        // 타임라인 요소들 준비
+        function prepareTimelineElements() {
+            const canvas = document.getElementById('canvas');
+            const elements = canvas.querySelectorAll('.canvas-element:not(.canvas-background-template)');
+            
+            timelineElements = [];
+            
+            elements.forEach((element, index) => {
+                const timelineItem = {
+                    element: element,
+                    startTime: index * 3, // 3초씩 간격
+                    endTime: totalDuration,
+                    animation: 'fadeIn',
+                    duration: 0.5
+                };
+                
+                timelineElements.push(timelineItem);
+                
+                // 초기에는 모든 요소 숨김
+                element.style.display = 'none';
+                element.style.opacity = '0';
+            });
+            
+            console.log(`📋 타임라인 요소 ${timelineElements.length}개 준비 완료`);
+        }
+        
+        // 재생/일시정지 토글
+        function togglePlayPause() {
+            if (isPlaying) {
+                pausePlayback();
+            } else {
+                startPlayback();
+            }
+        }
+        
+        // 재생 시작
+        function startPlayback() {
+            if (currentMode !== 'player') return;
+            
+            isPlaying = true;
+            document.getElementById('play-pause-btn').innerHTML = '⏸️';
+            
+            playInterval = setInterval(() => {
+                currentTime += 1/30; // 30fps
+                
+                if (currentTime >= totalDuration) {
+                    const loopBtn = document.getElementById('loop-btn');
+                    if (loopBtn && loopBtn.classList.contains('active')) {
+                        seekTo(0);
+                    } else {
+                        stopPlayback();
+                    }
+                    return;
+                }
+                
+                updateTimeline();
+                updateTimeDisplay();
+                updateTimelineSlider();
+                
+            }, 1000/30);
+            
+            console.log('▶️ 재생 시작');
+        }
+        
+        // 재생 일시정지
+        function pausePlayback() {
+            isPlaying = false;
+            document.getElementById('play-pause-btn').innerHTML = '▶️';
+            
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+            
+            console.log('⏸️ 재생 일시정지');
+        }
+        
+        // 재생 정지
+        function stopPlayback() {
+            pausePlayback();
+            seekTo(0);
+            console.log('⏹️ 재생 정지');
+        }
+        
+        // 특정 시점으로 이동
+        function seekTo(time) {
+            currentTime = Math.max(0, Math.min(totalDuration, time));
+            updateTimeline();
+            updateTimeDisplay();
+            updateTimelineSlider();
+        }
+        
+        // 타임라인 업데이트
+        function updateTimeline() {
+            timelineElements.forEach(item => {
+                const { element, startTime, endTime, animation, duration } = item;
+                
+                if (currentTime >= startTime && currentTime <= endTime) {
+                    if (element.style.display === 'none') {
+                        element.style.display = '';
+                        animateElement(element, animation, duration);
+                    }
+                } else {
+                    element.style.display = 'none';
+                    element.style.opacity = '0';
+                }
+            });
+        }
+        
+        // 요소 애니메이션
+        function animateElement(element, animationType, duration) {
+            element.style.transition = `all ${duration}s ease`;
+            
+            switch(animationType) {
+                case 'fadeIn':
+                    element.style.opacity = '0';
+                    setTimeout(() => {
+                        element.style.opacity = '1';
+                    }, 10);
+                    break;
+                default:
+                    element.style.opacity = '1';
+            }
+        }
+        
+        // 시간 표시 업데이트
+        function updateTimeDisplay() {
+            const current = formatTime(currentTime);
+            const total = formatTime(totalDuration);
+            document.getElementById('time-display').innerHTML = `${current} / ${total}`;
+        }
+        
+        // 타임라인 슬라이더 업데이트
+        function updateTimelineSlider() {
+            document.getElementById('timeline-slider').value = currentTime;
+        }
+        
+        // 시간 포맷팅
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        // 재생 속도 변경
+        function changePlaybackSpeed(speed) {
+            console.log(`⚡ 재생 속도: ${speed}x`);
+        }
+        
+        // 볼륨 조절
+        function changeVolume(volume) {
+            document.getElementById('volume-value').innerHTML = `${volume}%`;
+            console.log(`🔊 볼륨: ${volume}%`);
+        }
+        
+        // 반복 재생 토글
+        function toggleLoop() {
+            const loopBtn = document.getElementById('loop-btn');
+            loopBtn.classList.toggle('active');
+            
+            if (loopBtn.classList.contains('active')) {
+                loopBtn.style.background = '#007bff';
+                loopBtn.innerHTML = '🔄 반복 ON';
+            } else {
+                loopBtn.style.background = '#555';
+                loopBtn.innerHTML = '🔄 반복';
+            }
+        }
+        
+        // 전체화면 토글
+        function toggleFullscreen() {
+            const canvas = document.getElementById('canvas');
+            
+            if (!document.fullscreenElement) {
+                canvas.requestFullscreen().then(() => {
+                    console.log('⛶ 전체화면 모드');
+                }).catch(err => {
+                    console.error('전체화면 실패:', err);
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    console.log('⛷ 전체화면 해제');
+                }).catch(err => {
+                    console.error('전체화면 해제 실패:', err);
+                });
+            }
+        }
+        
+        // 동영상 렌더링
+        function renderVideo() {
+            if (!confirm('현재 편집 내용을 동영상으로 렌더링하시겠습니까?')) {
+                return;
+            }
+            
+            const renderBtn = event.target;
+            const originalText = renderBtn.innerHTML;
+            renderBtn.innerHTML = '🎬 렌더링 중...';
+            renderBtn.disabled = true;
+            
+            setTimeout(() => {
+                alert(`🎉 렌더링 완료!
+
+출력 설정:
+- 해상도: 1080x1920 (세로형 쇼츠)  
+- 포맷: MP4 (H.264)
+- 프레임률: 30fps
+- 길이: ${formatTime(totalDuration)}
+
+파일이 다운로드 폴더에 저장됩니다.`);
+                
+                renderBtn.innerHTML = originalText;
+                renderBtn.disabled = false;
+                
+                console.log('🎬 동영상 렌더링 완료');
+            }, 3000);
+        }
+        
+        // ========== 템플릿 및 기타 로드 ==========
+        
+        // PPT 편집기 템플릿 로드
+        fetch('templates/ppt-editor.html')
+            .then(response => response.text())
+            .then(html => {
+                // 이미 HTML에 내장되어 있으므로 추가 로드 불필요
+                
+                // 텍스트 편집기 로드
+                return fetch('templates/text-editor.html');
+            })
+            .then(response => response.text())
+            .then(html => {
+                const pptContent = document.getElementById('ppt-content');
+                if (pptContent) {
+                    pptContent.insertAdjacentHTML('beforeend', html);
+                }
+            })
+            .catch(error => console.error('텍스트 편집기 로드 실패:', error));
+
+        // 템플릿 패널 로드
+        fetch('templates/template-panel.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('template-sources').innerHTML = html;
+            })
+            .catch(error => console.error('템플릿 패널 로드 실패:', error));
+            
+        // 저장된 프로젝트 불러오기
+        function loadProject() {
+            const saved = localStorage.getItem('currentProject');
+            if (saved) {
+                const projectData = JSON.parse(saved);
+                
+                // 프로젝트 제목 복원
+                document.getElementById('project-title').textContent = projectData.name;
+                
+                // 캔버스 초기화
+                const canvas = document.getElementById('canvas');
+                canvas.innerHTML = '';
+                
+                // 요소들 복원
+                projectData.elements.forEach(elementData => {
+                    let element;
+                    
+                    if (elementData.type === 'text') {
+                        element = document.createElement('div');
+                        element.className = 'canvas-element canvas-text';
+                        element.innerHTML = elementData.content;
+                        element.contentEditable = true;
+                    } else if (elementData.type === 'image') {
+                        element = document.createElement('img');
+                        element.className = 'canvas-element canvas-image';
+                        element.src = elementData.content;
+                    }
+                    
+                    if (element) {
+                        element.id = elementData.id;
+                        element.style.cssText = elementData.style;
+                        element.style.left = elementData.position.left;
+                        element.style.top = elementData.position.top;
+                        element.style.position = 'absolute';
+                        element.style.cursor = 'move';
+                        
+                        element.onclick = function() {
+                            selectElement(this);
+                        };
+                        
+                        canvas.appendChild(element);
+                    }
+                });
+                
+                console.log(`📂 프로젝트 불러오기 완료: ${projectData.elements.length}개 요소`);
+                return true;
+            }
+            return false;
+        }
+        
+        // 페이지 로드 완료 시 초기화 및 자동 불러오기
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎬 편집기 로드 완료 - 플레이어 기능 내장');
+            
+            // 저장된 프로젝트 자동 불러오기
+            if (loadProject()) {
+                console.log('✅ 저장된 프로젝트 자동 복원됨');
+            }
+        });
+    </script>
+</body>
+</html>

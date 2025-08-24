@@ -1,0 +1,61 @@
+<div id="text-editor" style="display: none;">
+    <div class="ppt-section">
+        <h4>📝 텍스트 편집</h4>
+        <div class="ppt-control">
+            <textarea id="text-content" rows="3" placeholder="텍스트를 입력하세요" style="width: 100%; padding: 8px; background: #404040; border: 1px solid #555; border-radius: 4px; color: white; font-size: 12px; resize: vertical;"></textarea>
+        </div>
+    </div>
+    
+    <div class="ppt-section">
+        <h4>글꼴 스타일</h4>
+        <div class="ppt-control">
+            <label>크기</label>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <input type="range" id="text-size" min="12" max="72" value="16" style="flex: 1;">
+                <span id="text-size-value" style="min-width: 40px; color: #ccc;">16px</span>
+            </div>
+        </div>
+        <div class="ppt-control">
+            <label>색상</label>
+            <input type="color" id="text-color" value="#ffffff" style="width: 100%; height: 35px;">
+        </div>
+        <div class="ppt-control">
+            <label>글꼴</label>
+            <select id="text-font" style="width: 100%; padding: 8px; background: #404040; border: 1px solid #555; border-radius: 4px; color: white;">
+                <option value="Arial">Arial</option>
+                <option value="맑은 고딕">맑은 고딕</option>
+                <option value="나눔고딕">나눔고딕</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Courier New">Courier New</option>
+            </select>
+        </div>
+        <div class="button-group">
+            <button id="bold-btn" onclick="toggleTextBold()">🔤 굵게</button>
+            <button id="italic-btn" onclick="toggleTextItalic()">📖 기울임</button>
+            <button id="underline-btn" onclick="toggleTextUnderline()">🔒 밑줄</button>
+        </div>
+    </div>
+    
+    <div class="ppt-section">
+        <h4>텍스트 정렬</h4>
+        <div class="button-group">
+            <button onclick="setTextAlign('left')">⬅️ 왼쪽</button>
+            <button onclick="setTextAlign('center')">↔️ 가운데</button>
+            <button onclick="setTextAlign('right')">➡️ 오른쪽</button>
+        </div>
+    </div>
+    
+    <div class="ppt-section">
+        <h4>위치 조정</h4>
+        <div style="display: flex; gap: 10px;">
+            <div class="ppt-control" style="flex: 1;">
+                <label>X</label>
+                <input type="number" id="text-x" min="0" max="300" style="width: 100%; padding: 6px; background: #404040; border: 1px solid #555; border-radius: 4px; color: white;">
+            </div>
+            <div class="ppt-control" style="flex: 1;">
+                <label>Y</label>
+                <input type="number" id="text-y" min="0" max="500" style="width: 100%; padding: 6px; background: #404040; border: 1px solid #555; border-radius: 4px; color: white;">
+            </div>
+        </div>
+    </div>
+</div>
